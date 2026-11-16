@@ -1,0 +1,10 @@
+[package]
+name = "review-comments"
+version = "0.1.0"
+entrypoint = "lib.typ"
+authors = ["Martijn Kuipers <martijn.kuipers@ulusofona.pt>"]
+license = "MIT"
+description = "Word-style review comments for Typst: hidden by default, shown as highlighted text with notes in a right-hand margin."
+repository = "https://github.com/MartijnKuipers/typst-review-comments"
+keywords = ["comments", "review", "annotations", "margin", "notes"]
+categories = ["text", "utility"]
