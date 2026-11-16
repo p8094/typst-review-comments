@@ -13,11 +13,21 @@
 #let _show-resolved = state("review-comments-show-resolved", true)
 #let _counter = counter("review-comment")
 
+// Page widths (portrait) of the standard Typst paper sizes.
+#let _paper-widths = (
+  a3: 29.7cm, a4: 21cm, a5: 14.8cm, a6: 10.5cm,
+  b4: 25cm, b5: 17.6cm, b6: 12.5cm,
+  "iso-b5": 17.6cm, "us-letter": 21.59cm, "us-legal": 21.59cm,
+  "us-executive": 18.42cm, "us-tabloid": 27.94cm,
+)
+
 /// Document-level setup. Apply with `#show: review-comments.with(...)`.
 ///
 /// - enabled (bool): show the comments (default `false`: they are hidden).
-/// - paper-width (length): width of the page *without* the comment margin
-///   (default: A4, 21cm).
+/// - paper (str): paper size of the document, e.g. `"a4"` (default),
+///   `"a5"`, `"us-letter"`. Used to place the comments correctly.
+/// - paper-width (length, auto): explicit page width *without* the comment
+///   margin, for sizes not covered by `paper` (overrides `paper`).
 /// - margin-right (length): the document's normal right page margin
 ///   (default: 3cm).
 /// - margin-width (length): width of the extra comment margin.
@@ -29,7 +39,8 @@
 #let review-comments(
   enabled: false,
   show-resolved: true,
-  paper-width: 21cm,
+  paper: "a4",
+  paper-width: auto,
   margin-right: 3cm,
   margin-width: 5.5cm,
   fill: rgb("#fff2a8"),
@@ -38,6 +49,8 @@
   resolved-accent: rgb("#3a9a47"),
   body,
 ) = {
+  assert(paper-width != auto or paper in _paper-widths, message: "unknown paper size \"" + paper + "\": pass paper-width instead")
+  let paper-width = if paper-width == auto { _paper-widths.at(paper) } else { paper-width }
   _enabled.update(enabled)
   _text-right.update(paper-width - margin-right)
   _show-resolved.update(show-resolved)

@@ -5,7 +5,7 @@ Word-style review comments for [Typst](https://typst.app). Comments are
 and the notes in an extra right-hand margin.
 
 ```typ
-#import "@preview/review-comments:0.2.0": *
+#import "@preview/review-comments:0.3.0": *
 
 // enabled: true shows the comments, false (default) hides them.
 #show: review-comments.with(enabled: true)
@@ -36,7 +36,8 @@ and this one an anchor-only note.#comment[Check this number.]
 | -------------- | -------- | -------------------------------------------------------- |
 | `enabled`      | `false`  | Show the comments                                        |
 | `show-resolved`| `true`   | Show comments marked `resolved: true` (green)            |
-| `paper-width`  | `21cm`   | Page width without the comment margin (A4)               |
+| `paper`        | `"a4"`   | Paper size of the document (`"a5"`, `"us-letter"`, ...)  |
+| `paper-width`  | `auto`   | Explicit page width, for sizes not covered by `paper`    |
 | `margin-right` | `3cm`    | The document's normal right margin                       |
 | `margin-width` | `5.5cm`  | Width of the extra comment margin                        |
 | `fill`         | yellow   | Highlight and card colour                                |
@@ -44,9 +45,9 @@ and this one an anchor-only note.#comment[Check this number.]
 | `resolved-fill`, `resolved-accent` | green | The same for resolved comments               |
 
 When enabled, the page is widened on the right only, so the text layout and
-page breaks are identical to the version without comments. Set `paper-width`
-and `margin-right` to match your page setup if it is not A4 with a 3cm right
-margin. Apply `review-comments` before your own `set page` rules, or make
+page breaks are identical to the version without comments. Set `paper`
+(or `paper-width`) and `margin-right` to match your page setup if it is not
+A4 with a 3cm right margin. Apply `review-comments` before your own `set page` rules, or make
 sure they do not override the right margin.
 
 Notes that would overlap are stacked below one another; with very many
