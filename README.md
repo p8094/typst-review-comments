@@ -5,7 +5,7 @@ Word-style review comments for [Typst](https://typst.app). Comments are
 and the notes in an extra right-hand margin.
 
 ```typ
-#import "@preview/review-comments:0.1.0": *
+#import "@preview/review-comments:0.2.0": *
 
 // enabled: true shows the comments, false (default) hides them.
 #show: review-comments.with(enabled: true)
@@ -18,6 +18,15 @@ and this one an anchor-only note.#comment[Check this number.]
 - `#comment[note][text]` highlights `text` and attaches `note`.
 - `#comment[note]` adds a numbered marker only.
 - `author` and `date` are optional.
+- `resolved: true` marks a comment as resolved: it turns green with a ✓.
+  To hide all resolved comments from the output, use `show-resolved: false`
+  in the setup (hidden comments take no space and do not use a number).
+
+```typ
+#show: review-comments.with(enabled: true, show-resolved: false)
+
+#comment(author: "Pedro Alves", resolved: true)[Citation added.][done]
+```
 
 ## Setup options
 
@@ -26,11 +35,13 @@ and this one an anchor-only note.#comment[Check this number.]
 | Option         | Default  | Description                                              |
 | -------------- | -------- | -------------------------------------------------------- |
 | `enabled`      | `false`  | Show the comments                                        |
+| `show-resolved`| `true`   | Show comments marked `resolved: true` (green)            |
 | `paper-width`  | `21cm`   | Page width without the comment margin (A4)               |
 | `margin-right` | `3cm`    | The document's normal right margin                       |
 | `margin-width` | `5.5cm`  | Width of the extra comment margin                        |
 | `fill`         | yellow   | Highlight and card colour                                |
 | `accent`       | amber    | Colour of the card's left border                         |
+| `resolved-fill`, `resolved-accent` | green | The same for resolved comments               |
 
 When enabled, the page is widened on the right only, so the text layout and
 page breaks are identical to the version without comments. Set `paper-width`

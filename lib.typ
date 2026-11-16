@@ -10,7 +10,7 @@
 
 #let _enabled = state("review-comments-enabled", false)
 #let _text-right = state("review-comments-text-right", 0cm)
-#let _last = state("review-comments-last", (page: 0, bottom: 0pt))
+#let _show-resolved = state("review-comments-show-resolved", true)
 #let _counter = counter("review-comment")
 
 /// Document-level setup. Apply with `#show: review-comments.with(...)`.
@@ -21,19 +21,33 @@
 /// - margin-right (length): the document's normal right page margin
 ///   (default: 3cm).
 /// - margin-width (length): width of the extra comment margin.
+/// - show-resolved (bool): show comments marked `resolved: true` (default
+///   `true`; they are green). With `false` they are hidden like when
+///   `enabled` is off.
 /// - fill, accent (color): highlight/card colour and the card's left border.
+/// - resolved-fill, resolved-accent (color): the same for resolved comments.
 #let review-comments(
   enabled: false,
+  show-resolved: true,
   paper-width: 21cm,
   margin-right: 3cm,
   margin-width: 5.5cm,
   fill: rgb("#fff2a8"),
   accent: rgb("#e0b800"),
+  resolved-fill: rgb("#cdeccb"),
+  resolved-accent: rgb("#3a9a47"),
   body,
 ) = {
   _enabled.update(enabled)
   _text-right.update(paper-width - margin-right)
-  state("review-comments-style").update((margin-width: margin-width, fill: fill, accent: accent))
+  _show-resolved.update(show-resolved)
+  state("review-comments-style").update((
+    margin-width: margin-width,
+    fill: fill,
+    accent: accent,
+    resolved-fill: resolved-fill,
+    resolved-accent: resolved-accent,
+  ))
   set page(width: paper-width + margin-width, margin: (right: margin-right + margin-width)) if enabled
   body
 }
@@ -43,23 +57,30 @@
 /// - ..args: `[note]` or `[note][highlighted text]`.
 /// - author (str, content, none): shown in bold on the card.
 /// - date (str, content, none): shown next to the author.
-#let comment(..args, author: none, date: none) = {
+/// - resolved (bool): mark the comment as resolved: it turns green and can be
+///   hidden with `show-resolved: false`.
+#let comment(..args, author: none, date: none, resolved: false) = {
   let pos = args.pos()
   assert(pos.len() in (1, 2), message: "usage: #comment[note][text], or #comment[note] for an anchor-only comment")
   let note = pos.at(0)
   let body = if pos.len() == 2 { pos.at(1) } else { none }
-  context if _enabled.get() {
+  context if _enabled.get() and (not resolved or _show-resolved.get()) {
     let style = state("review-comments-style").get()
+    let (fill, accent) = if resolved {
+      (style.resolved-fill, style.resolved-accent)
+    } else {
+      (style.fill, style.accent)
+    }
     let gap = 0.4cm
     let width = style.margin-width - gap - 0.3cm
     _counter.step()
     let n = context _counter.display()
-    if body != none { highlight(fill: style.fill, body) }
-    super(text(fill: rgb("#b8860b"), weight: "bold", size: 0.8em, n))
+    if body != none { highlight(fill: fill, body) }
+    super(text(fill: if resolved { accent } else { rgb("#b8860b") }, weight: "bold", size: 0.8em, n))
     let card = block(
       width: width,
-      fill: style.fill.lighten(40%),
-      stroke: (left: 1.5pt + style.accent),
+      fill: fill.lighten(40%),
+      stroke: (left: 1.5pt + accent),
       inset: (x: 5pt, y: 4pt),
       radius: 1pt,
       {
@@ -67,10 +88,12 @@
         set par(justify: false, first-line-indent: 0em, leading: 0.4em)
         if author != none or date != none {
           text(weight: "bold")[#n. #author]
+          if resolved { h(0.3em); text(fill: accent, weight: "bold")[✓] }
           if date != none { h(0.4em); text(fill: luma(100), date) }
           linebreak()
         } else {
           text(weight: "bold")[#n.]
+          if resolved { h(0.2em); text(fill: accent, weight: "bold")[✓] }
           h(0.3em)
         }
         note
@@ -78,11 +101,23 @@
     )
     // Next to its anchor; a note that would overlap the previous one on the
     // same page is pushed down below it.
+    // Each note's anchor position and height are published as metadata; the
+    // offset is then computed from the earlier notes only, which converges
+    // quickly however many comments there are.
     box(width: 0pt, context {
       let pos = here().position()
-      let last = _last.get()
-      let dy = if last.page == pos.page { calc.max(0pt, last.bottom - pos.y + 3pt) } else { 0pt }
-      _last.update((page: pos.page, bottom: pos.y + dy + measure(card).height))
+      let h = measure(card).height
+      let earlier = query(selector(<review-comments-note>).before(here(), inclusive: false))
+      let bottom = none
+      for m in earlier {
+        let v = m.value
+        if v.page == pos.page {
+          let top = if bottom == none { v.y } else { calc.max(v.y, bottom + 3pt) }
+          bottom = top + v.h
+        }
+      }
+      let dy = if bottom == none { 0pt } else { calc.max(0pt, bottom + 3pt - pos.y) }
+      [#metadata((page: pos.page, y: pos.y, h: h)) <review-comments-note>]
       place(top + left, dx: _text-right.get() - pos.x + gap, dy: dy, card)
     })
   } else {
