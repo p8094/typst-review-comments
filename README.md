@@ -95,6 +95,11 @@ overwritten.
 
 Import the package in every chapter file where you use `#comment`.
 
+## VS Code extension
+
+A companion VS Code extension is available for working with these comments:
+[p8094/typst-review-comments-vscode](https://github.com/p8094/typst-review-comments-vscode).
+
 ## License
 
 MIT
