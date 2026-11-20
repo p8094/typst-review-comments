@@ -1,4 +1,4 @@
-# review-comments
+# revisio
 
 Word-style review comments for [Typst](https://typst.app). Attach a note to a
 passage of text; comments are **hidden by default** and can be switched on to
